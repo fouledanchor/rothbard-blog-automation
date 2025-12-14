@@ -10,7 +10,7 @@ const steemjs = require('steem-js');
 
 // Configuration from environment variables
 const POSTING_KEY = process.env.STEEM_POSTING_KEY;
-const AUTHOR = process.env.STEEM_AUTHOR || 'jrhaseloff';
+const AUTHOR = process.env.STEEM_AUTHOR || 'libertylol';
 
 if (!POSTING_KEY) {
   console.error('❌ Error: STEEM_POSTING_KEY environment variable not set');
