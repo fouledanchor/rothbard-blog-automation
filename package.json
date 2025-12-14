@@ -4,6 +4,6 @@
   "description": "Automated Rothbard-style libertarian blog posting to Steemit",
   "main": "post-to-steemit.js",
   "dependencies": {
-    "steem": "0.7.11" 
+    "steem-js": "latest"
   }
 }
