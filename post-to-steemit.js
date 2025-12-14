@@ -3,10 +3,10 @@
 /**
  * Steemit Blog Post Automation Script
  * Posts a Rothbard-style libertarian blog post to Steemit
- * Runs automatically via GitHub Actions
+ * Uses steem-js library
  */
 
-const steem = require('steem');
+const steemjs = require('steem-js');
 
 // Configuration from environment variables
 const POSTING_KEY = process.env.STEEM_POSTING_KEY;
@@ -18,7 +18,7 @@ if (!POSTING_KEY) {
 }
 
 // Initialize Steem connection
-steem.api.setOptions({ url: 'https://api.steemit.com' });
+steemjs.api.setOptions({ url: 'https://api.steemit.com' });
 
 // Blog post data
 const parentAuthor = '';
@@ -56,47 +56,47 @@ const jsonMetadata = JSON.stringify({
 });
 
 // Function to post
-function postToSteemit() {
-  console.log('\n' + '='.repeat(80));
-  console.log('🚀 POSTING TO STEEMIT');
-  console.log('='.repeat(80));
-  console.log(`\nAuthor: ${AUTHOR}`);
-  console.log(`Title: ${title}`);
-  console.log(`Permlink: ${permlink}`);
-  console.log('\n⏳ Broadcasting transaction to Steem blockchain...');
+async function postToSteemit() {
+  try {
+    console.log('\n' + '='.repeat(80));
+    console.log('🚀 POSTING TO STEEMIT');
+    console.log('='.repeat(80));
+    console.log(`\nAuthor: ${AUTHOR}`);
+    console.log(`Title: ${title}`);
+    console.log(`Permlink: ${permlink}`);
+    console.log('\n⏳ Broadcasting transaction to Steem blockchain...');
 
-  // Broadcast the comment operation using callback
-  steem.broadcast.comment(
-    POSTING_KEY,
-    parentAuthor,
-    parentPermlink,
-    AUTHOR,
-    permlink,
-    title,
-    body,
-    jsonMetadata,
-    (err, result) => {
-      if (err) {
-        console.error('\n❌ Error posting to Steemit:');
-        console.error(err.message || err);
-        console.error('\nTroubleshooting:');
-        console.error('1. Verify your posting key is correct');
-        console.error('2. Ensure your account (@' + AUTHOR + ') exists');
-        console.error('3. Check Steemit API status');
-        console.error('4. Verify network connectivity');
-        process.exit(1);
-      } else {
-        console.log('\n✅ SUCCESS! Blog post published to Steemit!');
-        console.log(`\nTransaction ID: ${result.id || result}`);
-        console.log(`\nView your post at:`);
-        console.log(`https://steemit.com/@${AUTHOR}/${permlink}`);
-        console.log('\n' + '='.repeat(80));
-        console.log('Post timestamp:', new Date().toISOString());
-        console.log('='.repeat(80) + '\n');
-        process.exit(0);
-      }
-    }
-  );
+    // Broadcast the comment operation
+    const result = await steemjs.broadcast.commentAsync(
+      POSTING_KEY,
+      parentAuthor,
+      parentPermlink,
+      AUTHOR,
+      permlink,
+      title,
+      body,
+      jsonMetadata
+    );
+
+    console.log('\n✅ SUCCESS! Blog post published to Steemit!');
+    console.log(`\nTransaction ID: ${result.id || result}`);
+    console.log(`\nView your post at:`);
+    console.log(`https://steemit.com/@${AUTHOR}/${permlink}`);
+    console.log('\n' + '='.repeat(80));
+    console.log('Post timestamp:', new Date().toISOString());
+    console.log('='.repeat(80) + '\n');
+    process.exit(0);
+  } catch (error) {
+    console.error('\n❌ Error posting to Steemit:');
+    console.error(error.message || error);
+    console.error('\nFull error:', error);
+    console.error('\nTroubleshooting:');
+    console.error('1. Verify your posting key is correct');
+    console.error('2. Ensure your account (@' + AUTHOR + ') exists');
+    console.error('3. Check Steemit API status at https://api.steemit.com');
+    console.error('4. Verify network connectivity');
+    process.exit(1);
+  }
 }
 
 // Run the posting function
