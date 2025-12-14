@@ -17,14 +17,15 @@ if (!POSTING_KEY) {
   process.exit(1);
 }
 
+// Initialize Steem connection
+steem.api.setOptions({ url: 'https://api.steemit.com' });
+
 // Blog post data
-const post = {
-  parent_author: '',
-  parent_permlink: 'libertarian',
-  author: AUTHOR,
-  permlink: 'the-obscene-arithmetic-of-state-plunder-20474-per-person',
-  title: 'The Obscene Arithmetic of State Plunder: $20,474 Per Person in Annual Theft',
-  body: `![Murray Rothbard - Libertarian Economist](https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Murray_Rothbard.jpg/440px-Murray_Rothbard.jpg)
+const parentAuthor = '';
+const parentPermlink = 'libertarian';
+const permlink = 'the-obscene-arithmetic-of-state-plunder-20474-per-person';
+const title = 'The Obscene Arithmetic of State Plunder: $20,474 Per Person in Annual Theft';
+const body = `![Murray Rothbard - Libertarian Economist](https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Murray_Rothbard.jpg/440px-Murray_Rothbard.jpg)
 
 ---
 
@@ -46,60 +47,56 @@ There is only one moral response to this obscenity: the complete separation of s
 
 Murray Rothbard understood that the state is not a necessary evil—it is simply evil. And the $7 trillion annual theft is the proof.
 
-Follow Murray Rothbard on Twitter here: https://twitter.com/MurraySuggests`,
-  json_metadata: JSON.stringify({
-    tags: ['libertarian', 'austrian-economics', 'government-spending', 'property-rights', 'free-market'],
-    app: 'rothbard-blog-writer/1.0',
-    image: ['https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Murray_Rothbard.jpg/440px-Murray_Rothbard.jpg']
-  })
-};
+Follow Murray Rothbard on Twitter here: https://twitter.com/MurraySuggests`;
 
-// Initialize Steem connection
-steem.api.setOptions({ url: 'https://api.steemit.com' });
+const jsonMetadata = JSON.stringify({
+  tags: ['libertarian', 'austrian-economics', 'government-spending', 'property-rights', 'free-market'],
+  app: 'rothbard-blog-writer/1.0',
+  image: ['https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/Murray_Rothbard.jpg/440px-Murray_Rothbard.jpg']
+});
 
 // Function to post
-async function postToSteemit() {
-  try {
-    console.log('\n' + '='.repeat(80));
-    console.log('🚀 POSTING TO STEEMIT');
-    console.log('='.repeat(80));
-    console.log(`\nAuthor: ${AUTHOR}`);
-    console.log(`Title: ${post.title}`);
-    console.log(`Permlink: ${post.permlink}`);
-    console.log('\n⏳ Broadcasting transaction to Steem blockchain...');
+function postToSteemit() {
+  console.log('\n' + '='.repeat(80));
+  console.log('🚀 POSTING TO STEEMIT');
+  console.log('='.repeat(80));
+  console.log(`\nAuthor: ${AUTHOR}`);
+  console.log(`Title: ${title}`);
+  console.log(`Permlink: ${permlink}`);
+  console.log('\n⏳ Broadcasting transaction to Steem blockchain...');
 
-    // Broadcast the comment operation
-    const result = await steem.broadcast.commentAsync(
-      POSTING_KEY,
-      post.parent_author,
-      post.parent_permlink,
-      post.author,
-      post.permlink,
-      post.title,
-      post.body,
-      post.json_metadata
-    );
-
-    console.log('\n✅ SUCCESS! Blog post published to Steemit!');
-    console.log(`\nTransaction ID: ${result.id}`);
-    console.log(`\nView your post at:`);
-    console.log(`https://steemit.com/@${AUTHOR}/${post.permlink}`);
-    console.log('\n' + '='.repeat(80));
-    console.log('Post timestamp:', new Date().toISOString());
-    console.log('='.repeat(80) + '\n');
-    
-    process.exit(0);
-  } catch (error) {
-    console.error('\n❌ Error posting to Steemit:');
-    console.error(error.message);
-    console.error('\nTroubleshooting:');
-    console.error('1. Verify your posting key is correct');
-    console.error('2. Ensure your account (@' + AUTHOR + ') exists');
-    console.error('3. Check Steemit API status');
-    console.error('4. Verify network connectivity');
-    console.error('\nFull error:', error);
-    process.exit(1);
-  }
+  // Broadcast the comment operation using callback
+  steem.broadcast.comment(
+    POSTING_KEY,
+    parentAuthor,
+    parentPermlink,
+    AUTHOR,
+    permlink,
+    title,
+    body,
+    jsonMetadata,
+    (err, result) => {
+      if (err) {
+        console.error('\n❌ Error posting to Steemit:');
+        console.error(err.message || err);
+        console.error('\nTroubleshooting:');
+        console.error('1. Verify your posting key is correct');
+        console.error('2. Ensure your account (@' + AUTHOR + ') exists');
+        console.error('3. Check Steemit API status');
+        console.error('4. Verify network connectivity');
+        process.exit(1);
+      } else {
+        console.log('\n✅ SUCCESS! Blog post published to Steemit!');
+        console.log(`\nTransaction ID: ${result.id || result}`);
+        console.log(`\nView your post at:`);
+        console.log(`https://steemit.com/@${AUTHOR}/${permlink}`);
+        console.log('\n' + '='.repeat(80));
+        console.log('Post timestamp:', new Date().toISOString());
+        console.log('='.repeat(80) + '\n');
+        process.exit(0);
+      }
+    }
+  );
 }
 
 // Run the posting function
