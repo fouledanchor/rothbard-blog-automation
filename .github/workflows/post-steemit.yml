@@ -2,17 +2,8 @@ name: Post to Steemit
 
 on:
   schedule:
-    # Posts daily at 8:00 AM UTC (2:00 AM Chicago time)
-    # Adjust the cron expression as needed:
-    # Format: minute hour day-of-month month day-of-week
-    # Examples:
-    #   '0 8 * * *'     = Daily at 8 AM UTC
-    #   '0 8 * * 1'     = Every Monday at 8 AM UTC
-    #   '0 8 1 * *'     = First day of month at 8 AM UTC
-    #   '0 14 * * *'    = Daily at 2 PM UTC (8 AM Chicago)
     - cron: '0 14 * * *'
   
-  # Allow manual trigger for testing
   workflow_dispatch:
 
 jobs:
